@@ -1,8 +1,8 @@
 # Maintainer:  cpasjuste <cpasjuste@gmail.com>
 
 pkgname=ps4-openorbis-libmpv
-pkgver=0.34.1
-pkgrel=6
+pkgver=0.39.0
+pkgrel=7
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'
@@ -10,11 +10,11 @@ license=('GPL')
 options=(!strip !debug libtool staticlibs)
 source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch")
 sha256sums=(
-  '32ded8c13b6398310fa27767378193dc1db6d78b006b70dbcbd3123a1445e746'
-  '7117f990b304a6c03d2d2dbbf2ee765b8c1b915b747216511c0e2ce03f05b2d1'
+  '2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683'
+  'd246dddc5079ad9ad90ed0a3ba689858b576b567782a5d05e23f35c90714301c'
 )
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
-depends=('ps4-openorbis-sdl2' 'ps4-openorbis-ffmpeg')
+depends=('ps4-openorbis-sdl2' 'ps4-openorbis-ffmpeg' 'ps4-openorbis-libarchive')
 groups=(
   'pacbrew' 'pacbrew-ps4' 'pacbrew-ps4-portlibs'
   'ps4-openorbis-portlibs' # for backward compatibility
@@ -23,25 +23,47 @@ groups=(
 prepare() {
   cd mpv-$pkgver
   patch -Np1 -i "$srcdir/mpv.patch"
+  sed -i "s/features.get('posix')/false/g" meson.build
 }
 
 build() {
   cd mpv-$pkgver
 
   source /opt/pacbrew/ps4/openorbis/ps4vars.sh
+  {
+    echo "[binaries]"
+    echo "c = '${CC}'"
+    echo "cpp = '${CXX}'"
+    echo "ar = '${AR}'"
+    echo "strip = '${STRIP}'"
+    echo "[host_machine]"
+    echo "system = 'freebsd'"
+    echo "cpu_family = 'x86_64'"
+    echo "cpu = 'x86_64'"
+    echo "endian = 'little'"
+  } > ps4_cross.txt
 
-  ./bootstrap.py
+  meson setup build --cross-file ps4_cross.txt \
+    --prefix="/usr" --libdir="lib" --default-library=static \
+    -Dlibmpv=true -Dcplayer=false -Diconv=disabled -Djpeg=disabled -Dlibavdevice=disabled \
+    -Dsdl2=enabled -Dsdl2-audio=enabled -Dsdl2-gamepad=disabled -Dsdl2-video=disabled \
+    -Dplain-gl=enabled -Dtests=false -Dlua=disabled \
+    -Dcpp_args="-nostdinc++ -isystem /opt/pacbrew/ps4/openorbis/include/c++/v1 -D__CORRECT_ISO_CPP_MATH_H_PROTO1"
 
-  TARGET=x86_64 ./waf configure --prefix="${OPENORBIS}/usr" \
-    --disable-libmpv-shared --enable-libmpv-static --disable-cplayer \
-    --disable-iconv --disable-jpeg --disable-libavdevice \
-    --enable-sdl2 --enable-sdl2-audio --disable-sdl2-gamepad --disable-sdl2-video
-
-  ./waf build
+  meson compile -C build
 }
 
 package() {
   cd mpv-$pkgver
-  ./waf install --destdir=$pkgdir
+  DESTDIR="${pkgdir}/opt/pacbrew/ps4/openorbis" meson install -C build
+
+  local source_dir="${pkgdir}/opt/pacbrew/ps4/openorbis/usr/libdata/pkgconfig"
+  local target_dir="${pkgdir}/opt/pacbrew/ps4/openorbis/usr/lib/pkgconfig"
+
+  if [ -d "${source_dir}" ]; then
+    mkdir -p "${target_dir}"
+    mv -v "${source_dir}"/* "${target_dir}/"
+    rm -rf "${pkgdir}/opt/pacbrew/ps4/openorbis/usr/libdata"
+  fi
 }
 

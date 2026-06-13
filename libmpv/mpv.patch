@@ -89,7 +89,7 @@ diff -NBaur mpv-0.39.0/osdep/timer-linux.c mpv-0.39.0-ps4/osdep/timer-linux.c
  void mp_sleep_ns(int64_t ns)
 diff -NBaur mpv-0.39.0/video/out/opengl/ra_gl.c mpv-0.39.0-ps4/video/out/opengl/ra_gl.c
 --- mpv-0.39.0/video/out/opengl/ra_gl.c	2024-09-23 20:36:41.000000000 +0300
-+++ mpv-0.39.0-ps4/video/out/opengl/ra_gl.c	2026-06-11 09:48:27.993391123 +0300
++++ mpv-0.39.0-ps4/video/out/opengl/ra_gl.c	2026-06-14 00:45:06.988814194 +0300
 @@ -6,6 +6,10 @@
  
  static struct ra_fns ra_fns_gl;
@@ -101,7 +101,7 @@ diff -NBaur mpv-0.39.0/video/out/opengl/ra_gl.c mpv-0.39.0-ps4/video/out/opengl/
  // For ra.priv
  struct ra_gl {
      GL *gl;
-@@ -749,13 +753,81 @@
+@@ -749,13 +753,83 @@
      GL *gl = ra_gl_get(ra);
  
      GLuint shader = gl->CreateShader(type);
@@ -111,11 +111,13 @@ diff -NBaur mpv-0.39.0/video/out/opengl/ra_gl.c mpv-0.39.0-ps4/video/out/opengl/
 +    char bin_path[256];
 +    char *custom_glsl = NULL;
 +
-+    sceKernelDebugOutText(0, "ps4_mpv_use_precompiled_shaders: %i, ps4_mpv_dump_shaders: %i\n", 
-+        ps4_mpv_use_precompiled_shaders, ps4_mpv_dump_shaders);
 +    if(ps4_mpv_use_precompiled_shaders || ps4_mpv_dump_shaders) {
 +        ps4_mpv_get_shader_hash(source, strlen(source), (char *) &hashstr);
-+        sceKernelDebugOutText(0, "compile_attach_shader: type: %s, sha: %s\n", shader_typestr(type), hashstr);
++        sceKernelDebugOutText(0, "compile_attach_shader: type: ");
++        sceKernelDebugOutText(0, shader_typestr(type));
++        sceKernelDebugOutText(0, ", sha: ");
++        sceKernelDebugOutText(0, hashstr);
++        sceKernelDebugOutText(0, "\n");
 +    }
 +    if(ps4_mpv_dump_shaders) {
 +        ps4_mpv_save_original_glsl("/data", hashstr, source, shader_typestr(type));
@@ -170,7 +172,7 @@ diff -NBaur mpv-0.39.0/video/out/opengl/ra_gl.c mpv-0.39.0-ps4/video/out/opengl/
      gl->GetShaderiv(shader, GL_INFO_LOG_LENGTH, &log_length);
 -
 +#ifdef __PS4__
-+    if(ps4_mpv_dump_shaders && !loaded_from_cache) {
++    if(ps4_mpv_dump_shaders) {
 +        ps4_shader *shader_bin = ps4_mpv_get_shader(hashstr);
 +        if(shader_bin == NULL) {
 +            sceKernelDebugOutText(0, "compile_attach_shader: precompiled shader not found, dumping\n");

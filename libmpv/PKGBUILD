@@ -11,7 +11,7 @@ options=(!strip !debug libtool staticlibs)
 source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch")
 sha256sums=(
   '2ca92437affb62c2b559b4419ea4785c70d023590500e8a52e95ea3ab4554683'
-  'd246dddc5079ad9ad90ed0a3ba689858b576b567782a5d05e23f35c90714301c'
+  '5375a32cf4c702dfb295de5723454aa00c580f250c0a5baeb9bf95690db53dee'
 )
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
 depends=('ps4-openorbis-sdl2' 'ps4-openorbis-ffmpeg' 'ps4-openorbis-libarchive')

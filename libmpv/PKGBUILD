@@ -30,18 +30,20 @@ build() {
 
   source /opt/pacbrew/ps4/openorbis/ps4vars.sh
 
-  ./bootstrap.py
+  waf=./waf
+  waf --version | grep -q 'waf 2.0.25' && waf=waf || ./bootstrap.py
 
-  TARGET=x86_64 ./waf configure --prefix="${OPENORBIS}/usr" \
+  TARGET=x86_64 $waf configure --prefix="${OPENORBIS}/usr" \
     --disable-libmpv-shared --enable-libmpv-static --disable-cplayer \
     --disable-iconv --disable-jpeg --disable-libavdevice \
     --enable-sdl2 --enable-sdl2-audio --disable-sdl2-gamepad --disable-sdl2-video
 
-  ./waf build
+  $waf build
 }
 
 package() {
   cd mpv-$pkgver
-  ./waf install --destdir=$pkgdir
+  waf --version | grep -q 'waf 2.0.25' && waf=waf || waf=./waf
+  $waf install --destdir=$pkgdir
 }
 

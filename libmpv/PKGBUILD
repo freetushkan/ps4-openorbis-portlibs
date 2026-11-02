@@ -2,16 +2,17 @@
 
 pkgname=ps4-openorbis-libmpv
 pkgver=0.36.0
-pkgrel=9
+pkgrel=10
 pkgdesc='Command line video player (library only)'
 arch=('any')
 url='https://mpv.io/'
 license=('GPL')
 options=(!strip !debug libtool staticlibs)
-source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch" "mkv-noindex-seek.patch")
+source=("libmpv-${pkgver}.tar.gz::https://github.com/mpv-player/mpv/archive/v${pkgver}.tar.gz" "mpv.patch" "mkv-noindex-seek.patch" "video-null-decoder.patch")
 sha256sums=(
   '29abc44f8ebee013bb2f9fe14d80b30db19b534c679056e4851ceadf5a5e8bf6'
   '3c7585a7994b2ecb0402e1dd69cda58b5143f381fb24065190878178a88af28f'
+  'SKIP'
   'SKIP'
 )
 makedepends=('ps4-openorbis-pkg-config' 'ps4-openorbis-vars')
@@ -25,6 +26,7 @@ prepare() {
   cd mpv-$pkgver
   patch -Np1 -i "$srcdir/mpv.patch"
   patch -Np1 -i "$srcdir/mkv-noindex-seek.patch"
+  patch -Np1 -i "$srcdir/video-null-decoder.patch"
 }
 
 build() {
